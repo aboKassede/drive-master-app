@@ -1,8 +1,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://34.228.166.62:8000/api/v1'; // Replace with your EC2 IP
-// Example: 'http://54.123.45.67:8000/api/v1'
+const API_BASE_URL = 'http://34.228.166.62:8000/api/v1';
+console.log('API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -18,8 +18,16 @@ api.interceptors.request.use(async (config) => {
 });
 
 export const authAPI = {
-  login: (email, password) => 
-    api.post('/auth/login', { username: email, password }),
+  login: (email, password) => {
+    const formData = new FormData();
+    formData.append('username', email);
+    formData.append('password', password);
+    return api.post('/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+  },
   
   register: (userData) => 
     api.post('/auth/register', userData),

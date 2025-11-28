@@ -36,6 +36,13 @@ async def create_lesson(
     lesson_dict["student_id"] = str(lesson_dict["student_id"])
     lesson_dict["instructor_id"] = str(lesson_dict["instructor_id"])
     
+    # Send notifications
+    from app.api.v1.routes.notifications import send_lesson_notification
+    try:
+        await send_lesson_notification(str(result.inserted_id), current_user)
+    except Exception as e:
+        print(f"Failed to send notifications: {e}")
+    
     return lesson_dict
 
 @router.get("/my-lessons", response_model=List[LessonResponse])

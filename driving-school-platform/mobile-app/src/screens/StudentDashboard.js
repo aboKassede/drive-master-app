@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../services/api';
 
@@ -25,7 +25,8 @@ const StudentDashboard = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <Text style={styles.title}>Student Dashboard</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
@@ -45,96 +46,133 @@ const StudentDashboard = ({ navigation }) => {
 
       <View style={styles.menuGrid}>
         <TouchableOpacity 
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: '#EFF6FF' }]}
           onPress={() => navigation.navigate('Lessons')}
         >
+          <Text style={styles.menuIcon}>📚</Text>
           <Text style={styles.menuText}>My Lessons</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: '#F0F9FF' }]}
           onPress={() => navigation.navigate('Schedule')}
         >
-          <Text style={styles.menuText}>Schedule</Text>
+          <Text style={styles.menuIcon}>📅</Text>
+          <Text style={styles.menuText}>Book Lesson</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.menuItem}
+          style={[styles.menuItem, { backgroundColor: '#F0FDF4' }]}
           onPress={() => navigation.navigate('Payment')}
         >
+          <Text style={styles.menuIcon}>💳</Text>
           <Text style={styles.menuText}>Payments</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Profile')}
+          style={[styles.menuItem, { backgroundColor: '#FFFBEB' }]}
+          onPress={() => navigation.navigate('Notifications')}
         >
-          <Text style={styles.menuText}>Profile</Text>
+          <Text style={styles.menuIcon}>🔔</Text>
+          <Text style={styles.menuText}>Notifications</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1E293B',
   },
   logoutButton: {
-    padding: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
   },
   logoutText: {
-    color: '#FF3B30',
-    fontSize: 16,
+    color: '#EF4444',
+    fontSize: 14,
+    fontWeight: '600',
   },
   profileCard: {
-    backgroundColor: 'white',
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
+    backgroundColor: '#3B82F6',
+    marginHorizontal: 24,
+    marginTop: 20,
+    padding: 24,
+    borderRadius: 16,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+    color: '#FFFFFF',
   },
   profileText: {
     fontSize: 16,
-    color: '#666',
-    marginBottom: 5,
+    color: 'rgba(255, 255, 255, 0.95)',
+    marginBottom: 4,
   },
   menuGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    padding: 10,
+    paddingHorizontal: 16,
+    paddingTop: 24,
   },
   menuItem: {
-    width: '45%',
-    backgroundColor: 'white',
-    margin: '2.5%',
-    padding: 30,
-    borderRadius: 12,
+    width: '47%',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: '1.5%',
+    marginBottom: 16,
+    padding: 24,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    minHeight: 100,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  menuIcon: {
+    fontSize: 32,
+    marginBottom: 8,
   },
   menuText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#334155',
+    textAlign: 'center',
   },
 });
 
