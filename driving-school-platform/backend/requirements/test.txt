@@ -1,0 +1,4 @@
+-r dev.txt
+pytest-cov==4.1.0
+httpx==0.25.2
+pytest-mock==3.12.0
