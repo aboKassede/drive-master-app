@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'http://YOUR-EC2-PUBLIC-IP:8000/api/v1'; // Replace with your EC2 IP
+const API_BASE_URL = 'http://34.228.166.62:8000/api/v1'; // Replace with your EC2 IP
 // Example: 'http://54.123.45.67:8000/api/v1'
 
 const api = axios.create({

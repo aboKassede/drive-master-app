@@ -4,10 +4,10 @@
     "slug": "driving-school-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "https://via.placeholder.com/1024x1024/007AFF/FFFFFF?text=DS",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "https://via.placeholder.com/1242x2436/007AFF/FFFFFF?text=Driving+School",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,13 +20,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "https://via.placeholder.com/1024x1024/007AFF/FFFFFF?text=DS",
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.drivingschool.mobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "https://via.placeholder.com/48x48/007AFF/FFFFFF?text=DS"
+    },
+    "sdkVersion": "54.0.0"
   }
 }
