@@ -78,6 +78,8 @@ const SchoolsScreen = ({ navigation }) => {
                 });
                 
                 console.log('API Response:', response);
+                console.log('Response data:', response.data);
+                console.log('Response status:', response.status);
                 
                 if (response && response.data) {
                   Alert.alert('Success', 'Your request has been sent to the school!');
@@ -87,6 +89,8 @@ const SchoolsScreen = ({ navigation }) => {
                 }
               } catch (apiError) {
                 console.error('API Error:', apiError);
+                console.error('Error details:', apiError.response);
+                console.error('Error config:', apiError.config);
                 Alert.alert('Error', `Failed to send request: ${apiError.message}`);
               }
             }
