@@ -163,3 +163,39 @@ async def seed_schools():
     except Exception as e:
         print(f"Error seeding schools: {e}")
         return {"message": f"Error: {str(e)}"}
+
+@router.get("/public")
+async def get_public_schools():
+    """Public endpoint to get schools without authentication"""
+    print("Public schools endpoint called")
+    try:
+        db = get_database()
+        schools = []
+        
+        total_count = await db.schools.count_documents({})
+        print(f"Total schools in database: {total_count}")
+        
+        async for school in db.schools.find({}):
+            print(f"Found school: {school.get('name', 'Unknown')}")
+            school_data = {
+                "id": str(school["_id"]),
+                "name": school.get("name", ""),
+                "address": school.get("address", ""),
+                "phone": school.get("phone", ""),
+                "services": school.get("services", []),
+                "lesson_types": school.get("lesson_types", []),
+                "pricing": school.get("pricing", []),
+                "operating_hours": school.get("operating_hours", {}),
+                "total_students": school.get("total_students", 0),
+                "total_instructors": school.get("total_instructors", 0),
+                "average_rating": school.get("average_rating", 0.0),
+                "description": school.get("description", "")
+            }
+            schools.append(school_data)
+        
+        print(f"Returning {len(schools)} schools")
+        return {"schools": schools}
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"schools": [], "error": str(e)}
