@@ -17,9 +17,10 @@ async def accept_lesson(
     db = get_database()
     
     # Verify instructor owns this lesson
+    instructor_id = await get_instructor_id(current_user["email"], db)
     lesson = await db.lessons.find_one({
         "_id": ObjectId(lesson_id),
-        "instructor_id": ObjectId(await get_instructor_id(current_user["email"], db))
+        "instructor_id": instructor_id
     })
     
     if not lesson:
@@ -93,7 +94,7 @@ async def get_pending_lessons(current_user: dict = Depends(get_current_user)):
     
     lessons = []
     async for lesson in db.lessons.find({
-        "instructor_id": ObjectId(instructor_id),
+        "instructor_id": instructor_id,
         "status": "scheduled"
     }).sort("scheduled_date", 1):
         # Get student details
@@ -111,4 +112,4 @@ async def get_pending_lessons(current_user: dict = Depends(get_current_user)):
 
 async def get_instructor_id(email: str, db):
     instructor = await db.instructors.find_one({"email": email})
-    return str(instructor["_id"]) if instructor else None
+    return instructor["_id"] if instructor else None

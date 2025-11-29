@@ -52,7 +52,6 @@ const NotificationsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notifications</Text>
       <FlatList
         data={notifications}
         renderItem={renderNotification}
@@ -72,12 +71,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-  },
+
   notificationCard: {
     backgroundColor: 'white',
     padding: 15,

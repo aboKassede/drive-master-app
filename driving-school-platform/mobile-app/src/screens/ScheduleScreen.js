@@ -75,10 +75,6 @@ const ScheduleScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Book a Lesson</Text>
-      </View>
-      
       <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
       
       <View style={styles.section}>
@@ -146,22 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
+
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 20,

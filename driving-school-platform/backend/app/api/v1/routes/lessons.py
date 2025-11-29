@@ -36,12 +36,36 @@ async def create_lesson(
     lesson_dict["student_id"] = str(lesson_dict["student_id"])
     lesson_dict["instructor_id"] = str(lesson_dict["instructor_id"])
     
-    # Send notifications
-    from app.api.v1.routes.notifications import send_lesson_notification
+    # Create notifications
+    notifications = [
+        {
+            "user_email": current_user["email"],
+            "title": "Lesson Booked",
+            "message": f"Your lesson is scheduled for {lesson_data.scheduled_date}",
+            "type": "lesson_booked",
+            "lesson_id": str(result.inserted_id),
+            "read": False,
+            "created_at": datetime.utcnow()
+        }
+    ]
+    
+    # Get instructor for notification
+    instructor = await db.instructors.find_one({"_id": ObjectId(lesson_data.instructor_id)})
+    if instructor:
+        notifications.append({
+            "user_email": instructor["email"],
+            "title": "New Lesson Request",
+            "message": f"New lesson request for {lesson_data.scheduled_date}",
+            "type": "lesson_request",
+            "lesson_id": str(result.inserted_id),
+            "read": False,
+            "created_at": datetime.utcnow()
+        })
+    
     try:
-        await send_lesson_notification(str(result.inserted_id), current_user)
+        await db.notifications.insert_many(notifications)
     except Exception as e:
-        print(f"Failed to send notifications: {e}")
+        print(f"Failed to create notifications: {e}")
     
     return lesson_dict
 

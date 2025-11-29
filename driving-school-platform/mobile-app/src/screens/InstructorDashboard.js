@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, FlatList, Alert, SafeAreaView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -94,187 +94,320 @@ const InstructorDashboard = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Instructor Dashboard</Text>
-        <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      {profile && (
-        <View style={styles.profileCard}>
-          <Text style={styles.welcomeText}>
-            Welcome, {profile.first_name} {profile.last_name}!
-          </Text>
-          <Text style={styles.profileText}>Email: {profile.email}</Text>
-          <Text style={styles.profileText}>Rate: ${profile.hourly_rate}/hour</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header Bar */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {profile ? profile.first_name?.charAt(0) : 'I'}
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.greeting}>Good morning</Text>
+              <Text style={styles.userName}>
+                {profile ? `${profile.first_name} ${profile.last_name}` : 'Instructor'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Text style={styles.notificationIcon}>🔔</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={logout} style={styles.menuButton}>
+              <Text style={styles.menuIcon}>☰</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Pending Lesson Requests ({pendingLessons.length})</Text>
-        {pendingLessons.length > 0 ? (
-          <FlatList
-            data={pendingLessons}
-            renderItem={renderPendingLesson}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <Text style={styles.noLessonsText}>No pending requests</Text>
+        {/* Stats Cards */}
+        {profile && (
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{pendingLessons.length}</Text>
+              <Text style={styles.statLabel}>Pending Requests</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>${profile.hourly_rate || 0}</Text>
+              <Text style={styles.statLabel}>Hourly Rate</Text>
+            </View>
+          </View>
         )}
-      </View>
 
-      <View style={styles.menuGrid}>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>My Schedule</Text>
-        </TouchableOpacity>
+        {/* Pending Requests Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pending Lesson Requests</Text>
+          {pendingLessons.length > 0 ? (
+            <FlatList
+              data={pendingLessons}
+              renderItem={renderPendingLesson}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={false}
+            />
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyIcon}>📅</Text>
+              <Text style={styles.emptyText}>No pending requests</Text>
+              <Text style={styles.emptySubtext}>New lesson requests will appear here</Text>
+            </View>
+          )}
+        </View>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>Students</Text>
-        </TouchableOpacity>
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionGrid}>
+            <TouchableOpacity style={[styles.actionItem, { backgroundColor: '#EFF6FF' }]}>
+              <Text style={styles.actionIcon}>📅</Text>
+              <Text style={styles.actionText}>My Schedule</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>Earnings</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionItem, { backgroundColor: '#F0F9FF' }]}>
+              <Text style={styles.actionIcon}>👥</Text>
+              <Text style={styles.actionText}>Students</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+            <TouchableOpacity style={[styles.actionItem, { backgroundColor: '#F0FDF4' }]}>
+              <Text style={styles.actionIcon}>💰</Text>
+              <Text style={styles.actionText}>Earnings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.actionItem, { backgroundColor: '#FFFBEB' }]}>
+              <Text style={styles.actionIcon}>⚙️</Text>
+              <Text style={styles.actionText}>Settings</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8FAFC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+    paddingBottom: 20,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  logoutButton: {
-    padding: 8,
-  },
-  logoutText: {
-    color: '#FF3B30',
-    fontSize: 16,
-  },
-  profileCard: {
-    backgroundColor: 'white',
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
-  },
-  welcomeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  profileText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 5,
-  },
-  menuGrid: {
+  headerLeft: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    padding: 10,
+    alignItems: 'center',
   },
-  menuItem: {
-    width: '45%',
-    backgroundColor: 'white',
-    margin: '2.5%',
-    padding: 30,
-    borderRadius: 12,
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
-  menuText: {
-    fontSize: 16,
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  greeting: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 2,
+  },
+  userName: {
+    fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#1E293B',
+  },
+  notificationButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  notificationIcon: {
+    fontSize: 24,
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menuIcon: {
+    fontSize: 24,
+    color: '#64748B',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
   },
   section: {
-    margin: 20,
+    marginHorizontal: 24,
+    marginTop: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 16,
   },
   lessonCard: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF9500',
+    borderLeftColor: '#F59E0B',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   studentName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 8,
   },
   lessonDate: {
     fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 3,
+    color: '#3B82F6',
+    marginBottom: 4,
+    fontWeight: '500',
   },
   lessonType: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 3,
+    color: '#64748B',
+    marginBottom: 4,
   },
   studentPhone: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 10,
+    color: '#64748B',
+    marginBottom: 16,
   },
   actionButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 12,
   },
   actionButton: {
     flex: 1,
-    padding: 10,
-    borderRadius: 6,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    marginHorizontal: 5,
   },
   acceptButton: {
-    backgroundColor: '#34C759',
+    backgroundColor: '#10B981',
   },
   rejectButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#EF4444',
   },
   acceptButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
   },
   rejectButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
   },
-  noLessonsText: {
+  emptyState: {
+    backgroundColor: '#FFFFFF',
+    padding: 40,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#64748B',
     textAlign: 'center',
-    color: '#666',
-    fontStyle: 'italic',
+  },
+  quickActions: {
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  actionItem: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
     padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: '#1E293B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  actionIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+    textAlign: 'center',
   },
 });
 

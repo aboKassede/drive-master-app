@@ -44,9 +44,14 @@ export const AuthProvider = ({ children }) => {
       const { access_token, token_type } = response.data;
       
       await AsyncStorage.setItem('access_token', access_token);
-      await AsyncStorage.setItem('user_type', 'student');
       
-      setUser({ token: access_token, userType: 'student' });
+      // Decode token to get user type
+      const tokenParts = access_token.split('.');
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const userType = payload.user_type || 'student';
+      
+      await AsyncStorage.setItem('user_type', userType);
+      setUser({ token: access_token, userType });
       console.log('Login successful');
       return { success: true };
     } catch (error) {

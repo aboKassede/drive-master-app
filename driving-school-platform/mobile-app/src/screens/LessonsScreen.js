@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
 import api from '../services/api';
 
 const LessonsScreen = () => {
@@ -20,16 +20,6 @@ const LessonsScreen = () => {
       setLoading(false);
     }
   };
-
-  const renderLesson = ({ item }) => (
-    <View style={styles.lessonCard}>
-      <Text style={styles.lessonType}>{item.lesson_type}</Text>
-      <Text style={styles.lessonDate}>
-        {new Date(item.scheduled_date).toLocaleDateString()}
-      </Text>
-      <Text style={styles.lessonStatus}>Status: {item.status}</Text>
-    </View>
-  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -74,7 +64,7 @@ const LessonsScreen = () => {
           <Text style={styles.title}>My Lessons</Text>
         </View>
         <View style={styles.emptyState}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#3B82F6" />
         </View>
       </View>
     );
@@ -82,9 +72,6 @@ const LessonsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Lessons</Text>
-      </View>
       
       {lessons.length > 0 ? (
         <FlatList
@@ -112,22 +99,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
+
   content: {
     paddingHorizontal: 24,
     paddingTop: 20,

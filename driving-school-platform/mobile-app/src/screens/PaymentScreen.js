@@ -8,7 +8,6 @@ const PaymentScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Payments</Text>
       
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Current Balance</Text>
@@ -28,12 +27,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 30,
-    color: '#333',
-  },
+
   balanceCard: {
     backgroundColor: 'white',
     padding: 30,
