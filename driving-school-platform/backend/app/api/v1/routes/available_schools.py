@@ -49,25 +49,30 @@ async def get_my_school():
     """Get current user's school information"""
     try:
         db = get_database()
-        # Check for approved requests
-        approved_request = await db.school_requests.find_one({"status": "approved"})
-        if approved_request:
-            school = await db.schools.find_one({"_id": approved_request["school_id"]})
-            if school:
-                return {
-                    "school": {
-                        "id": str(school["_id"]),
-                        "name": school.get("name", ""),
-                        "address": school.get("address", ""),
-                        "phone": school.get("phone", "")
-                    },
-                    "status": "approved"
-                }
+        # Since we don't have proper auth, we'll use the most recent request as current user
+        # This is a simplified approach for demo purposes
         
-        # Check for pending requests
-        pending_request = await db.school_requests.find_one({"status": "pending"})
-        if pending_request:
-            return {"school": None, "status": "pending"}
+        # Get the most recent request (assuming it's the current user)
+        latest_request = await db.school_requests.find_one(
+            {},
+            sort=[("created_at", -1)]
+        )
+        
+        if latest_request:
+            if latest_request["status"] == "approved":
+                school = await db.schools.find_one({"_id": latest_request["school_id"]})
+                if school:
+                    return {
+                        "school": {
+                            "id": str(school["_id"]),
+                            "name": school.get("name", ""),
+                            "address": school.get("address", ""),
+                            "phone": school.get("phone", "")
+                        },
+                        "status": "approved"
+                    }
+            elif latest_request["status"] == "pending":
+                return {"school": None, "status": "pending"}
         
         return {"school": None, "status": "no_school"}
         

@@ -284,28 +284,20 @@ def approve_request(request_id):
         return jsonify({"success": False, "error": "Database connection failed"})
     
     try:
-        # Get request details
+        # Get request details  
         request = db.school_requests.find_one({"_id": ObjectId(request_id)})
         if not request:
             return jsonify({"success": False, "error": "Request not found"})
         
-        # Update request status
+        print(f"Approving request: {request}")
+        
+        # Update request status to approved
         db.school_requests.update_one(
             {"_id": ObjectId(request_id)},
-            {"$set": {"status": "approved", "updated_at": datetime.utcnow()}}
+            {"$set": {"status": "approved", "approved_at": datetime.utcnow(), "updated_at": datetime.utcnow()}}
         )
         
-        # Add student to school
-        db.schools.update_one(
-            {"_id": request["school_id"]},
-            {"$push": {"students": request["student_id"]}}
-        )
-        
-        # Update student with school info
-        db.students.update_one(
-            {"_id": request["student_id"]},
-            {"$set": {"school_id": request["school_id"], "school_status": "approved"}}
-        )
+        print(f"Request {request_id} approved successfully")
         
         return jsonify({"success": True, "message": "Request approved successfully"})
     except Exception as e:

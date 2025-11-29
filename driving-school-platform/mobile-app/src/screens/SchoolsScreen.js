@@ -112,6 +112,7 @@ const SchoolsScreen = ({ navigation }) => {
                 if (response && response.data && response.data.message) {
                   Alert.alert('Success', 'Your request has been sent to the school!');
                   setSchoolStatus('pending'); // Update status locally
+                  loadData(); // Reload data to reflect changes
                 } else {
                   Alert.alert('Error', 'Failed to send request');
                 }
@@ -173,6 +174,11 @@ const SchoolsScreen = ({ navigation }) => {
             {joiningSchool ? 'Sending...' : 'Request to Join'}
           </Text>
         </TouchableOpacity>
+      )}
+      {schoolStatus === 'pending' && (
+        <View style={styles.pendingButton}>
+          <Text style={styles.pendingButtonText}>⏳ Request Pending</Text>
+        </View>
       )}
     </View>
   );
@@ -394,6 +400,20 @@ const styles = StyleSheet.create({
   },
   joinButtonDisabled: {
     backgroundColor: '#9CA3AF',
+  },
+  pendingButton: {
+    backgroundColor: '#FEF3C7',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  pendingButtonText: {
+    color: '#92400E',
+    fontSize: 16,
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,

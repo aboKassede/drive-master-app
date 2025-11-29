@@ -34,6 +34,8 @@ async def register(user_data: UserRegister):
             "phone": user_data.phone,
             "date_of_birth": datetime.utcnow(),
             "emergency_contact": user_data.phone,
+            "school_id": None,
+            "school_status": None,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }
