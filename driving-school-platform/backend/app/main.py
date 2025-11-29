@@ -39,6 +39,33 @@ app.include_router(booking.router, prefix="/api/v1/booking", tags=["booking"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(healthcheck.router, tags=["health"])
 
+@app.post("/api/v1/join-school")
+async def join_school_simple(request_data: dict):
+    """Simple school join endpoint"""
+    try:
+        from app.db.mongo import get_database
+        from bson import ObjectId
+        from datetime import datetime
+        
+        db = get_database()
+        
+        school_request = {
+            "student_id": ObjectId(),
+            "school_id": ObjectId(request_data.get("school_id")),
+            "message": request_data.get("message", ""),
+            "status": "pending",
+            "student_name": "Mahmod",
+            "student_email": "mahmod@example.com",
+            "student_phone": "+1234567890",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        result = await db.school_requests.insert_one(school_request)
+        return {"message": "Join request sent successfully", "request_id": str(result.inserted_id)}
+    except Exception as e:
+        return {"message": f"Error: {str(e)}"}
+
 @app.get("/")
 async def root():
     return {"message": "Driving School Platform API"}

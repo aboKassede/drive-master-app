@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Requests - DriveLink Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f8fafc; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
+        .back-btn { background: rgba(255,255,255,0.2); color: white; padding: 10px 20px; border: none; border-radius: 6px; text-decoration: none; display: inline-block; margin-bottom: 15px; }
+        .request-card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .request-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .student-name { font-size: 1.4em; font-weight: bold; color: #1a202c; }
+        .approve-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+        .approve-btn:hover { background: #059669; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .info-item { background: #f8fafc; padding: 12px; border-radius: 6px; }
+        .info-label { font-weight: 600; color: #374151; font-size: 0.9em; margin-bottom: 5px; }
+        .info-value { color: #1f2937; }
+        .message-box { background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3B82F6; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/" class="back-btn">← Back to Dashboard</a>
+            <h1>📋 School Join Requests</h1>
+            <p>Manage student requests to join schools</p>
+        </div>
+        
+        {% if requests %}
+            {% for request in requests %}
+            <div class="request-card">
+                <div class="request-header">
+                    <div class="student-name">{{ request.student_name }}</div>
+                    <button class="approve-btn" onclick="approveRequest('{{ request.id }}')">
+                        ✅ Approve Request
+                    </button>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ request.student_email }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value">{{ request.student_phone }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">School</div>
+                        <div class="info-value">{{ request.school_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Request Date</div>
+                        <div class="info-value">{{ request.created_at }}</div>
+                    </div>
+                </div>
+                
+                {% if request.message %}
+                <div class="message-box">
+                    <div class="info-label">Message:</div>
+                    <div>{{ request.message }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <h2>📭 No Pending Requests</h2>
+                <p>All school join requests have been processed.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        function approveRequest(requestId) {
+            if (confirm('Approve this student request?')) {
+                fetch(`/api/approve-request/${requestId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('✅ Request approved successfully!');
+                        location.reload();
+                    } else {
+                        alert('❌ Error: ' + data.error);
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

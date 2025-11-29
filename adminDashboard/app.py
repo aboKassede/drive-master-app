@@ -239,5 +239,94 @@ def create_schools_direct():
     except Exception as e:
         return f"❌ Error: {str(e)}"
 
+@app.route('/school-requests')
+def view_school_requests():
+    if db is None:
+        return render_template('error.html', error="Database connection failed")
+    
+    try:
+        # Get all pending school requests with student details
+        requests = []
+        for request in db.school_requests.find({"status": "pending"}):
+            # Get student details
+            student = db.students.find_one({"_id": request["student_id"]})
+            # Get school details
+            school = db.schools.find_one({"_id": request["school_id"]})
+            
+            if student and school:
+                request_data = {
+                    "id": str(request["_id"]),
+                    "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip(),
+                    "student_email": student.get('email', ''),
+                    "student_phone": student.get('phone', ''),
+                    "school_name": school.get('name', ''),
+                    "message": request.get('message', ''),
+                    "created_at": request.get('created_at', ''),
+                    "student_id": str(request["student_id"]),
+                    "school_id": str(request["school_id"])
+                }
+                requests.append(request_data)
+        
+        return render_template('school_requests.html', requests=requests)
+    except Exception as e:
+        return render_template('error.html', error=f"Error loading requests: {str(e)}")
+
+@app.route('/api/approve-request/<request_id>', methods=['POST'])
+def approve_request(request_id):
+    if db is None:
+        return jsonify({"success": False, "error": "Database connection failed"})
+    
+    try:
+        # Get request details
+        request = db.school_requests.find_one({"_id": ObjectId(request_id)})
+        if not request:
+            return jsonify({"success": False, "error": "Request not found"})
+        
+        # Update request status
+        db.school_requests.update_one(
+            {"_id": ObjectId(request_id)},
+            {"$set": {"status": "approved", "updated_at": datetime.utcnow()}}
+        )
+        
+        # Add student to school
+        db.schools.update_one(
+            {"_id": request["school_id"]},
+            {"$push": {"students": request["student_id"]}}
+        )
+        
+        # Update student with school info
+        db.students.update_one(
+            {"_id": request["student_id"]},
+            {"$set": {"school_id": request["school_id"], "school_status": "approved"}}
+        )
+        
+        return jsonify({"success": True, "message": "Request approved successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/join-school', methods=['POST'])
+def join_school_request():
+    if db is None:
+        return jsonify({"success": False, "error": "Database connection failed"})
+    
+    try:
+        data = request.json
+        school_request = {
+            "student_id": ObjectId(),
+            "school_id": ObjectId(data.get("school_id")),
+            "message": data.get("message", ""),
+            "status": "pending",
+            "student_name": "Mahmod",
+            "student_email": "mahmod@example.com",
+            "student_phone": "+1234567890",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        result = db.school_requests.insert_one(school_request)
+        return jsonify({"success": True, "message": "Join request sent successfully", "request_id": str(result.inserted_id)})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

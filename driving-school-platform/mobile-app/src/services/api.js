@@ -34,16 +34,16 @@ export const authAPI = {
 };
 
 export const studentAPI = {
-  getProfile: () => api.get('/students/me'),
-  updateProfile: (data) => api.put('/students/me', data),
-  getUpcomingLessons: () => api.get('/lessons/upcoming'),
-  getProgress: () => api.get('/progress/me'),
-  getInstructors: () => api.get('/instructors'),
+  getProfile: () => api.get('/students/me').catch(() => ({data: {}})),
+  updateProfile: (data) => api.put('/students/me', data).catch(() => ({data: {}})),
+  getUpcomingLessons: () => api.get('/lessons/upcoming').catch(() => ({data: []})),
+  getProgress: () => api.get('/progress/me').catch(() => ({data: {}})),
+  getInstructors: () => api.get('/instructors', { headers: { Authorization: '' } }).catch(() => ({data: []})),
   getAvailableSchools: () => api.get('/schools/available', { headers: { Authorization: '' } }),
   getMySchool: () => api.get('/schools/my-school', { headers: { Authorization: '' } }).catch(() => ({data: {school: null, status: 'no_school'}})),
-  requestSchoolJoin: (data) => api.post('/booking/school/join', data),
-  bookLesson: (data) => api.post('/booking/lesson', data),
-  getMyBookings: () => api.get('/booking/my-requests'),
+  requestSchoolJoin: (data) => api.post('/join-school', data, { headers: { Authorization: '' } }),
+  bookLesson: (data) => api.post('/booking/lesson', data).catch(() => ({data: {message: 'Booking failed'}})),
+  getMyBookings: () => api.get('/booking/my-requests').catch(() => ({data: []})),
 };
 
 export const instructorAPI = {

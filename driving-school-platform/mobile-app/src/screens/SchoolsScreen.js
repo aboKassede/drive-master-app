@@ -21,7 +21,29 @@ const SchoolsScreen = ({ navigation }) => {
         studentAPI.getMySchool()
       ]);
       
-      setSchools(schoolsResponse.data.schools || []);
+      const schools = schoolsResponse.data.schools || [];
+      // Ensure services is always an array
+      const processedSchools = schools.map(school => {
+        let services = school.services || [];
+        // If services is a string, convert to array
+        if (typeof services === 'string') {
+          services = services.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        }
+        // If services is not an array, make it an empty array
+        if (!Array.isArray(services)) {
+          services = [];
+        }
+        
+        return {
+          ...school,
+          services: services,
+          average_rating: school.average_rating || 0
+        };
+      });
+      
+      console.log('Processed schools:', processedSchools);
+      console.log('School status:', schoolStatus);
+      setSchools(processedSchools);
       setMySchool(mySchoolResponse.data.school);
       setSchoolStatus(mySchoolResponse.data.status);
     } catch (error) {
@@ -33,6 +55,7 @@ const SchoolsScreen = ({ navigation }) => {
   };
 
   const handleJoinSchool = async (school) => {
+    console.log('Join school button pressed for:', school.name);
     try {
       Alert.alert(
         'Join School',
@@ -42,20 +65,36 @@ const SchoolsScreen = ({ navigation }) => {
           {
             text: 'Join',
             onPress: async () => {
-              const response = await studentAPI.requestSchoolJoin({
-                school_id: school.id,
-                message: `I would like to join ${school.name} for driving lessons.`
-              });
-              
-              if (response.data) {
-                Alert.alert('Success', 'Your request has been sent to the school!');
-                loadData();
+              console.log('User confirmed join request');
+              try {
+                console.log('Sending request with data:', {
+                  school_id: school.id,
+                  message: `I would like to join ${school.name} for driving lessons.`
+                });
+                
+                const response = await studentAPI.requestSchoolJoin({
+                  school_id: school.id,
+                  message: `I would like to join ${school.name} for driving lessons.`
+                });
+                
+                console.log('API Response:', response);
+                
+                if (response && response.data) {
+                  Alert.alert('Success', 'Your request has been sent to the school!');
+                  loadData();
+                } else {
+                  Alert.alert('Error', 'No response from server');
+                }
+              } catch (apiError) {
+                console.error('API Error:', apiError);
+                Alert.alert('Error', `Failed to send request: ${apiError.message}`);
               }
             }
           }
         ]
       );
     } catch (error) {
+      console.error('Join school error:', error);
       Alert.alert('Error', 'Failed to send join request');
     }
   };
@@ -65,7 +104,7 @@ const SchoolsScreen = ({ navigation }) => {
       <View style={styles.schoolHeader}>
         <Text style={styles.schoolName}>{item.name}</Text>
         <View style={styles.ratingContainer}>
-          <Text style={styles.rating}>⭐ {item.average_rating.toFixed(1)}</Text>
+          <Text style={styles.rating}>⭐ {(item.average_rating || 0).toFixed(1)}</Text>
         </View>
       </View>
       
@@ -76,14 +115,16 @@ const SchoolsScreen = ({ navigation }) => {
         <Text style={styles.schoolDescription}>{item.description}</Text>
       )}
       
-      <View style={styles.servicesContainer}>
-        <Text style={styles.servicesTitle}>Services:</Text>
-        <View style={styles.servicesList}>
-          {item.services.slice(0, 3).map((service, index) => (
-            <Text key={index} style={styles.serviceTag}>{service}</Text>
-          ))}
+      {(item.services || []).length > 0 && (
+        <View style={styles.servicesContainer}>
+          <Text style={styles.servicesTitle}>Services:</Text>
+          <View style={styles.servicesList}>
+            {(item.services || []).slice(0, 3).map((service, index) => (
+              <Text key={index} style={styles.serviceTag}>{service}</Text>
+            ))}
+          </View>
         </View>
-      </View>
+      )}
       
       <View style={styles.statsContainer}>
         <Text style={styles.stat}>👥 {item.total_students} students</Text>

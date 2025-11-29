@@ -164,6 +164,34 @@ async def seed_schools():
         print(f"Error seeding schools: {e}")
         return {"message": f"Error: {str(e)}"}
 
+@router.post("/join-request")
+async def create_join_request(request_data: dict):
+    """Create a school join request"""
+    try:
+        db = get_database()
+        
+        # Create school request
+        school_request = {
+            "student_id": ObjectId(),  # Temporary student ID
+            "school_id": ObjectId(request_data.get("school_id")),
+            "message": request_data.get("message", ""),
+            "status": "pending",
+            "student_name": "Mahmod",  # Hardcoded for now
+            "student_email": "mahmod@example.com",
+            "student_phone": "+1234567890",
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        result = await db.school_requests.insert_one(school_request)
+        print(f"Created school request: {result.inserted_id}")
+        
+        return {"message": "Join request sent successfully", "request_id": str(result.inserted_id)}
+    
+    except Exception as e:
+        print(f"Error creating join request: {e}")
+        return {"message": f"Error: {str(e)}"}
+
 @router.get("/public")
 async def get_public_schools():
     """Public endpoint to get schools without authentication"""
