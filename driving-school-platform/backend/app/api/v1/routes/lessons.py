@@ -69,6 +69,45 @@ async def create_lesson(
     
     return lesson_dict
 
+@router.get("/upcoming", response_model=List[LessonResponse])
+async def get_upcoming_lessons(current_user: dict = Depends(get_current_user)):
+    db = get_database()
+    
+    if current_user["user_type"] == "student":
+        student = await db.students.find_one({"email": current_user["email"]})
+        query = {
+            "student_id": student["_id"],
+            "scheduled_date": {"$gte": datetime.utcnow()},
+            "status": {"$in": ["scheduled", "confirmed"]}
+        }
+    else:
+        instructor = await db.instructors.find_one({"email": current_user["email"]})
+        query = {
+            "instructor_id": instructor["_id"],
+            "scheduled_date": {"$gte": datetime.utcnow()},
+            "status": {"$in": ["scheduled", "confirmed"]}
+        }
+    
+    lessons = []
+    async for lesson in db.lessons.find(query).sort("scheduled_date", 1).limit(5):
+        lesson["id"] = str(lesson["_id"])
+        lesson["student_id"] = str(lesson["student_id"])
+        lesson["instructor_id"] = str(lesson["instructor_id"])
+        
+        # Add instructor/student name for display
+        if current_user["user_type"] == "student":
+            instructor = await db.instructors.find_one({"_id": lesson["instructor_id"]})
+            if instructor:
+                lesson["instructor_name"] = f"{instructor.get('first_name', '')} {instructor.get('last_name', '')}"
+        else:
+            student = await db.students.find_one({"_id": lesson["student_id"]})
+            if student:
+                lesson["student_name"] = f"{student.get('first_name', '')} {student.get('last_name', '')}"
+        
+        lessons.append(lesson)
+    
+    return lessons
+
 @router.get("/my-lessons", response_model=List[LessonResponse])
 async def get_my_lessons(current_user: dict = Depends(get_current_user)):
     db = get_database()
