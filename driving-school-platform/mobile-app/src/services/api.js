@@ -37,6 +37,8 @@ export const studentAPI = {
   getProfile: () => api.get('/students/me'),
   updateProfile: (data) => api.put('/students/me', data),
   getUpcomingLessons: () => api.get('/lessons/upcoming'),
+  getProgress: () => api.get('/progress/me'),
+  getInstructors: () => api.get('/instructors'),
 };
 
 export default api;

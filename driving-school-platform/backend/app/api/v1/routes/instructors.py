@@ -21,10 +21,17 @@ async def get_current_instructor(current_user: dict = Depends(get_current_user))
 
 @router.get("/", response_model=List[dict])
 async def get_all_instructors():
-    db = get_database()
-    instructors = []
-    async for instructor in db.instructors.find():
-        instructor["id"] = str(instructor["_id"])
-        instructors.append(instructor)
-    
-    return instructors
+    try:
+        db = get_database()
+        instructors = []
+        async for instructor in db.instructors.find():
+            instructor["id"] = str(instructor["_id"])
+            # Remove sensitive fields
+            instructor.pop("password", None)
+            instructor.pop("_id", None)
+            instructors.append(instructor)
+        
+        return instructors
+    except Exception as e:
+        print(f"Error fetching instructors: {e}")
+        return []

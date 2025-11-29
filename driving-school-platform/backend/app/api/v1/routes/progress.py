@@ -37,28 +37,83 @@ async def add_lesson_notes(
     
     return {"message": "Progress notes added successfully"}
 
+@router.get("/me")
+async def get_my_progress(current_user: dict = Depends(get_current_user)):
+    try:
+        if current_user["user_type"] != "student":
+            raise HTTPException(status_code=403, detail="Only students can view their progress")
+        
+        db = get_database()
+        student = await db.students.find_one({"email": current_user["email"]})
+        
+        if not student:
+            return {
+                "total_lessons": 0,
+                "completed_lessons": 0,
+                "average_rating": 0,
+                "progress_entries": []
+            }
+        
+        # Get all lessons for student
+        lessons = []
+        async for lesson in db.lessons.find({"student_id": student["_id"]}):
+            lesson["id"] = str(lesson["_id"])
+            lessons.append(lesson)
+        
+        # Get progress entries
+        progress = []
+        if lessons:
+            async for entry in db.progress.find({"lesson_id": {"$in": [ObjectId(l["id"]) for l in lessons]}}):
+                entry["id"] = str(entry["_id"])
+                progress.append(entry)
+        
+        return {
+            "total_lessons": len(lessons),
+            "completed_lessons": len([l for l in lessons if l["status"] == "completed"]),
+            "average_rating": sum([p.get("performance_rating", 0) for p in progress]) / len(progress) if progress else 0,
+            "progress_entries": progress
+        }
+    except Exception as e:
+        print(f"Error fetching progress: {e}")
+        return {
+            "total_lessons": 0,
+            "completed_lessons": 0,
+            "average_rating": 0,
+            "progress_entries": []
+        }
+
 @router.get("/student/{student_id}")
 async def get_student_progress(
     student_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    db = get_database()
-    
-    # Get all lessons for student
-    lessons = []
-    async for lesson in db.lessons.find({"student_id": ObjectId(student_id)}):
-        lesson["id"] = str(lesson["_id"])
-        lessons.append(lesson)
-    
-    # Get progress entries
-    progress = []
-    async for entry in db.progress.find({"lesson_id": {"$in": [ObjectId(l["id"]) for l in lessons]}}):
-        entry["id"] = str(entry["_id"])
-        progress.append(entry)
-    
-    return {
-        "total_lessons": len(lessons),
-        "completed_lessons": len([l for l in lessons if l["status"] == "completed"]),
-        "average_rating": sum([p.get("performance_rating", 0) for p in progress]) / len(progress) if progress else 0,
-        "progress_entries": progress
-    }
+    try:
+        db = get_database()
+        
+        # Get all lessons for student
+        lessons = []
+        async for lesson in db.lessons.find({"student_id": ObjectId(student_id)}):
+            lesson["id"] = str(lesson["_id"])
+            lessons.append(lesson)
+        
+        # Get progress entries
+        progress = []
+        if lessons:
+            async for entry in db.progress.find({"lesson_id": {"$in": [ObjectId(l["id"]) for l in lessons]}}):
+                entry["id"] = str(entry["_id"])
+                progress.append(entry)
+        
+        return {
+            "total_lessons": len(lessons),
+            "completed_lessons": len([l for l in lessons if l["status"] == "completed"]),
+            "average_rating": sum([p.get("performance_rating", 0) for p in progress]) / len(progress) if progress else 0,
+            "progress_entries": progress
+        }
+    except Exception as e:
+        print(f"Error fetching student progress: {e}")
+        return {
+            "total_lessons": 0,
+            "completed_lessons": 0,
+            "average_rating": 0,
+            "progress_entries": []
+        }
