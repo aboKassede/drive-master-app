@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Keyboard
 import api from '../services/api';
 
 const ChatScreen = ({ route }) => {
-  const { otherUserEmail, otherUserName } = route.params;
+  const otherUserEmail = route.params?.otherUserEmail || 'instructor@example.com';
+  const otherUserName = route.params?.otherUserName || 'Instructor';
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -14,7 +15,7 @@ const ChatScreen = ({ route }) => {
 
   const loadMessages = async () => {
     try {
-      const response = await api.get(`/chat/messages/${otherUserEmail}`);
+      const response = await api.get(`/chat/messages/${encodeURIComponent(otherUserEmail)}`);
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to load messages:', error);
@@ -42,7 +43,7 @@ const ChatScreen = ({ route }) => {
   };
 
   const renderMessage = ({ item }) => {
-    const isMyMessage = item.sender_email !== otherUserEmail;
+    const isMyMessage = item.sender_email && item.sender_email !== otherUserEmail;
     
     return (
       <View style={[
