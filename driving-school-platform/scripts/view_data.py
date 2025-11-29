@@ -1,25 +1,36 @@
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
+import json
+from datetime import datetime
+
+def json_serial(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Type {type(obj)} not serializable")
 
 async def view_all_data():
     client = AsyncIOMotorClient("mongodb://admin:password@54.157.242.59:27017/driving_school?authSource=admin")
     db = client.driving_school
     
-    print("=== STUDENTS ===")
-    async for doc in db.students.find():
-        print(f"Email: {doc.get('email')}, Name: {doc.get('first_name')} {doc.get('last_name')}")
+    collections = ['students', 'instructors', 'schools', 'lessons', 'bookings', 'messages', 'notifications']
     
-    print("\n=== INSTRUCTORS ===")
-    async for doc in db.instructors.find():
-        print(f"Email: {doc.get('email')}, Name: {doc.get('first_name')} {doc.get('last_name')}, Rate: ${doc.get('hourly_rate')}")
-    
-    print("\n=== SCHOOLS ===")
-    async for doc in db.schools.find():
-        print(f"Name: {doc.get('name')}, Address: {doc.get('address')}")
-    
-    print("\n=== LESSONS ===")
-    async for doc in db.lessons.find():
-        print(f"Type: {doc.get('lesson_type')}, Date: {doc.get('scheduled_date')}, Status: {doc.get('status')}")
+    for collection_name in collections:
+        print(f"\n{'='*50}")
+        print(f"COLLECTION: {collection_name.upper()}")
+        print(f"{'='*50}")
+        
+        collection = db[collection_name]
+        count = await collection.count_documents({})
+        print(f"Total documents: {count}")
+        
+        if count > 0:
+            print("\nDocuments:")
+            async for doc in collection.find().limit(10):
+                doc['_id'] = str(doc['_id'])
+                print(json.dumps(doc, indent=2, default=json_serial))
+                print("-" * 30)
+        else:
+            print("No documents found.")
     
     client.close()
 
