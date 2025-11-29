@@ -36,8 +36,9 @@ async def get_schools():
     db = get_database()
     schools = []
     
-    async for school in db.schools.find({"status": "approved"}):
+    async for school in db.schools.find({"status": "active"}):
         school["id"] = str(school["_id"])
+        del school["_id"]  # Remove _id to avoid serialization issues
         schools.append(school)
     
     return schools
@@ -126,3 +127,64 @@ async def approve_student_request(
     )
     
     return {"message": "Student approved successfully"}
+
+@router.post("/seed")
+async def seed_schools():
+    db = get_database()
+    
+    # Check if schools already exist
+    existing_count = await db.schools.count_documents({})
+    if existing_count > 0:
+        return {"message": f"Already have {existing_count} schools"}
+    
+    # Create sample schools
+    schools = [
+        {
+            "name": "DriveRight Academy",
+            "address": "123 Main Street, New York, NY 10001",
+            "phone": "+1-555-0101",
+            "email": "info@driveright.com",
+            "description": "Premier driving school with experienced instructors",
+            "status": "active",
+            "rating": 4.8,
+            "established": "2015",
+            "services": ["Manual Transmission", "Automatic Transmission", "Defensive Driving"],
+            "instructors": [],
+            "students": [],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        },
+        {
+            "name": "SafeDrive Institute",
+            "address": "456 Oak Avenue, Los Angeles, CA 90210",
+            "phone": "+1-555-0202",
+            "email": "contact@safedrive.com",
+            "description": "Safety-focused driving education since 2010",
+            "status": "active",
+            "rating": 4.6,
+            "established": "2010",
+            "services": ["Beginner Lessons", "Advanced Driving", "Highway Training"],
+            "instructors": [],
+            "students": [],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        },
+        {
+            "name": "City Driving School",
+            "address": "789 Pine Road, Chicago, IL 60601",
+            "phone": "+1-555-0303",
+            "email": "admin@citydriving.com",
+            "description": "Urban driving specialists",
+            "status": "active",
+            "rating": 4.4,
+            "established": "2018",
+            "services": ["City Driving", "Parallel Parking", "Night Driving"],
+            "instructors": [],
+            "students": [],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+    ]
+    
+    result = await db.schools.insert_many(schools)
+    return {"message": f"Created {len(result.inserted_ids)} schools successfully"}
