@@ -40,8 +40,8 @@ export const studentAPI = {
   getProgress: () => api.get('/progress/me').catch(() => ({data: {}})),
   getInstructors: () => api.get('/instructors', { headers: { Authorization: '' } }).catch(() => ({data: []})),
   getAvailableSchools: () => api.get('/schools/available', { headers: { Authorization: '' } }),
-  getMySchool: () => api.get('/schools/my-school', { headers: { Authorization: '' } }).catch(() => ({data: {school: null, status: 'no_school'}})),
-  requestSchoolJoin: (data) => api.post('/schools/join-request', data, { headers: { Authorization: '' } }),
+  getMySchool: () => api.get('/schools/my-school').catch(() => ({data: {school: null, status: 'no_school'}})),
+  requestSchoolJoin: (data) => api.post('/schools/join-request', data),
   bookLesson: (data) => api.post('/booking/lesson', data).catch(() => ({data: {message: 'Booking failed'}})),
   getMyBookings: () => api.get('/booking/my-requests').catch(() => ({data: []})),
 };

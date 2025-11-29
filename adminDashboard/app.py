@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from pymongo import MongoClient
 import json
+import os
 from bson import ObjectId
 from datetime import datetime
 
@@ -8,14 +9,16 @@ app = Flask(__name__)
 
 # MongoDB connection with timeout
 try:
+    mongodb_url = os.getenv('MONGODB_URL', 'mongodb://localhost:27017')
     client = MongoClient(
-        "mongodb://admin:password@54.157.242.59:27017/driving_school?authSource=admin",
+        mongodb_url,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=5000
     )
     # Test connection
     client.admin.command('ping')
-    db = client.driving_school
+    db_name = os.getenv('DATABASE_NAME', 'driving_school')
+    db = client[db_name]
     print("✅ Connected to MongoDB successfully!")
 except Exception as e:
     print(f"❌ MongoDB connection failed: {e}")
@@ -310,14 +313,27 @@ def join_school_request():
     
     try:
         data = request.json
+        if not data or not data.get('school_id'):
+            return jsonify({"success": False, "error": "Missing required data"})
+            
+        # Validate required fields
+        if not data.get("student_id"):
+            return jsonify({"success": False, "error": "Student ID is required"})
+        
+        try:
+            student_obj_id = ObjectId(data.get("student_id"))
+            school_obj_id = ObjectId(data.get("school_id"))
+        except Exception:
+            return jsonify({"success": False, "error": "Invalid ID format"})
+        
         school_request = {
-            "student_id": ObjectId(),
-            "school_id": ObjectId(data.get("school_id")),
+            "student_id": student_obj_id,
+            "school_id": school_obj_id,
             "message": data.get("message", ""),
             "status": "pending",
-            "student_name": "Mahmod",
-            "student_email": "mahmod@example.com",
-            "student_phone": "+1234567890",
+            "student_name": data.get("student_name", "Unknown"),
+            "student_email": data.get("student_email", "unknown@email.com"),
+            "student_phone": data.get("student_phone", "No phone"),
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }

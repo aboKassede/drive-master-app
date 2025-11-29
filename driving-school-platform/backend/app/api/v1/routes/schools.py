@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 from app.api.v1.dependencies import get_current_user
 from app.db.mongo import get_database
+from app.utils.validation import validate_object_id, validate_required_fields
 from bson import ObjectId
 from datetime import datetime
 
@@ -51,17 +52,40 @@ async def join_school(
     if current_user["user_type"] != "student":
         raise HTTPException(status_code=403, detail="Only students can join schools")
     
+    # Validate school_id
+    school_obj_id = validate_object_id(school_id, "school_id")
+    
     db = get_database()
+    
+    # Verify school exists
+    school = await db.schools.find_one({"_id": school_obj_id})
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
     
     # Get student
     student = await db.students.find_one({"email": current_user["email"]})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Check if request already exists
+    existing = await db.school_requests.find_one({
+        "student_id": student["_id"],
+        "school_id": school_obj_id,
+        "status": "pending"
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Join request already pending")
     
     # Create join request
     request_dict = {
         "student_id": student["_id"],
-        "school_id": ObjectId(school_id),
+        "school_id": school_obj_id,
         "status": "pending",
-        "created_at": datetime.utcnow()
+        "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip(),
+        "student_email": student.get("email"),
+        "student_phone": student.get("phone", ""),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
     }
     
     await db.school_requests.insert_one(request_dict)
@@ -73,16 +97,27 @@ async def get_school_requests(
     school_id: str,
     current_user: dict = Depends(get_current_user)
 ):
+    # Validate school_id
+    school_obj_id = validate_object_id(school_id, "school_id")
+    
     db = get_database()
     
     # Verify user is school admin or instructor
-    school = await db.schools.find_one({"_id": ObjectId(school_id)})
+    school = await db.schools.find_one({"_id": school_obj_id})
     if not school:
         raise HTTPException(status_code=404, detail="School not found")
     
+    # Check if user has permission to view school requests
+    if current_user["user_type"] == "instructor":
+        instructor = await db.instructors.find_one({"email": current_user["email"]})
+        if not instructor or str(instructor["_id"]) not in school.get("instructor_ids", []):
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif current_user["user_type"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
     requests = []
     async for request in db.school_requests.find({
-        "school_id": ObjectId(school_id),
+        "school_id": school_obj_id,
         "status": "pending"
     }):
         # Get student details
@@ -103,21 +138,41 @@ async def approve_student_request(
     request_id: str,
     current_user: dict = Depends(get_current_user)
 ):
+    # Validate request_id
+    request_obj_id = validate_object_id(request_id, "request_id")
+    
     db = get_database()
+    
+    # Get request details first
+    request = await db.school_requests.find_one({"_id": request_obj_id})
+    if not request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    if request.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Request is not pending")
+    
+    # Verify user can approve requests for this school
+    school = await db.schools.find_one({"_id": request["school_id"]})
+    if not school:
+        raise HTTPException(status_code=404, detail="School not found")
+    
+    if current_user["user_type"] == "instructor":
+        instructor = await db.instructors.find_one({"email": current_user["email"]})
+        if not instructor or str(instructor["_id"]) not in school.get("instructor_ids", []):
+            raise HTTPException(status_code=403, detail="Access denied")
+    elif current_user["user_type"] != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
     
     # Update request status
     await db.school_requests.update_one(
-        {"_id": ObjectId(request_id)},
+        {"_id": request_obj_id},
         {"$set": {"status": "approved", "updated_at": datetime.utcnow()}}
     )
-    
-    # Get request details
-    request = await db.school_requests.find_one({"_id": ObjectId(request_id)})
     
     # Add student to school
     await db.schools.update_one(
         {"_id": request["school_id"]},
-        {"$push": {"students": request["student_id"]}}
+        {"$addToSet": {"students": request["student_id"]}}
     )
     
     # Update student with school info

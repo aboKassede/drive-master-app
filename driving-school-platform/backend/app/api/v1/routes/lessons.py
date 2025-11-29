@@ -20,6 +20,13 @@ async def create_lesson(
     db = get_database()
     student = await db.students.find_one({"email": current_user["email"]})
     
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    # Check if student is approved by a school
+    if not student.get("school_status") or student.get("school_status") != "approved":
+        raise HTTPException(status_code=403, detail="You must be approved by a school before booking lessons")
+    
     lesson_dict = {
         "student_id": ObjectId(str(student["_id"])),
         "instructor_id": ObjectId(lesson_data.instructor_id),

@@ -290,26 +290,3 @@ async def get_my_booking_requests(current_user: dict = Depends(get_current_user)
         print(f"Error fetching booking requests: {e}")
         return []
 
-@router.post("/school/join-public")
-async def request_school_join_public(school_data: dict):
-    """Public endpoint for school join requests"""
-    try:
-        db = get_database()
-        
-        # Create school request directly
-        request_data = {
-            "student_id": ObjectId(),  # Temporary ID
-            "school_id": ObjectId(school_data.get("school_id")),
-            "message": school_data.get("message", ""),
-            "status": "pending",
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        }
-        
-        result = await db.school_requests.insert_one(request_data)
-        
-        return {"message": "School join request sent successfully", "request_id": str(result.inserted_id)}
-    
-    except Exception as e:
-        print(f"Error in public school join: {e}")
-        return {"message": f"Error: {str(e)}"}
