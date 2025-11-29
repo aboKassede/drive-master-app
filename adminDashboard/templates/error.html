@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error - DriveLink Admin</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .error-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .error-icon { font-size: 4em; color: #dc3545; margin-bottom: 20px; }
+        .error-title { font-size: 2em; color: #dc3545; margin-bottom: 20px; }
+        .error-message { font-size: 1.2em; color: #666; margin-bottom: 30px; }
+        .retry-btn { background: #3B82F6; color: white; padding: 12px 24px; border: none; border-radius: 4px; text-decoration: none; display: inline-block; }
+        .instructions { background: #f8f9fa; padding: 20px; border-radius: 4px; margin-top: 20px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-card">
+            <div class="error-icon">⚠️</div>
+            <div class="error-title">Connection Error</div>
+            <div class="error-message">{{ error }}</div>
+            <a href="/" class="retry-btn">Retry Connection</a>
+            
+            <div class="instructions">
+                <h3>To fix this:</h3>
+                <ol>
+                    <li>Open AWS EC2 Console</li>
+                    <li>Go to Security Groups</li>
+                    <li>Find your instance's security group</li>
+                    <li>Add inbound rule: Port 27017, Source: Your IP</li>
+                    <li>Make sure MongoDB is running on EC2</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
