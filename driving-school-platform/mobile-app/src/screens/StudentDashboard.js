@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../services/api';
@@ -78,7 +78,19 @@ const StudentDashboard = ({ navigation }) => {
             <TouchableOpacity style={styles.notificationButton}>
               <Text style={styles.notificationIcon}>🔔</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} style={styles.menuButton}>
+            <TouchableOpacity onPress={() => {
+              Alert.alert(
+                'Menu',
+                'Choose an option',
+                [
+                  { text: 'Profile', onPress: () => navigation.navigate('Profile') },
+                  { text: 'Settings', onPress: () => navigation.navigate('Settings') },
+                  { text: 'Help', onPress: () => navigation.navigate('Help') },
+                  { text: 'Logout', onPress: handleLogout, style: 'destructive' },
+                  { text: 'Cancel', style: 'cancel' }
+                ]
+              );
+            }} style={styles.menuButton}>
               <Text style={styles.menuIcon}>☰</Text>
             </TouchableOpacity>
           </View>

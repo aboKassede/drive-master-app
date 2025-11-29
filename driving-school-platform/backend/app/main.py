@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db.mongo import connect_to_mongo, close_mongo_connection
-from app.api.v1.routes import auth, students, instructors, lessons, scheduling, payments, notifications, instructor_actions, schools, progress, ratings, chat, booking, available_schools
+from app.api.v1.routes import auth, students, instructors, lessons, scheduling, payments, notifications, instructor_actions, schools, progress, ratings, chat, booking, available_schools, admin
 from app.api import healthcheck
 
 app = FastAPI(title=settings.app_name, debug=settings.debug)
@@ -37,6 +37,7 @@ app.include_router(ratings.router, prefix="/api/v1/ratings", tags=["ratings"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.include_router(booking.router, prefix="/api/v1/booking", tags=["booking"])
 app.include_router(available_schools.router, prefix="/api/v1/schools", tags=["schools"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(healthcheck.router, tags=["health"])
 
 @app.get("/")

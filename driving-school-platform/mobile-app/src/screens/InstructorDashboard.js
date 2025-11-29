@@ -116,7 +116,19 @@ const InstructorDashboard = ({ navigation }) => {
             <TouchableOpacity style={styles.notificationButton}>
               <Text style={styles.notificationIcon}>🔔</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={logout} style={styles.menuButton}>
+            <TouchableOpacity onPress={() => {
+              Alert.alert(
+                'Menu',
+                'Choose an option',
+                [
+                  { text: 'Profile', onPress: () => navigation.navigate('Profile') },
+                  { text: 'Settings', onPress: () => navigation.navigate('Settings') },
+                  { text: 'Help', onPress: () => navigation.navigate('Help') },
+                  { text: 'Logout', onPress: logout, style: 'destructive' },
+                  { text: 'Cancel', style: 'cancel' }
+                ]
+              );
+            }} style={styles.menuButton}>
               <Text style={styles.menuIcon}>☰</Text>
             </TouchableOpacity>
           </View>

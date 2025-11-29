@@ -137,20 +137,42 @@ const SchoolsScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={schools}
-        renderItem={renderSchool}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderMySchool}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => {
-            setRefreshing(true);
-            loadData();
-          }} />
-        }
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      />
+      {schools.length === 0 && !loading ? (
+        <View style={styles.emptyContainer}>
+          {renderMySchool()}
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🏢</Text>
+            <Text style={styles.emptyTitle}>No Schools Available</Text>
+            <Text style={styles.emptyText}>
+              No driving schools are currently available. Pull down to refresh or contact support.
+            </Text>
+            <TouchableOpacity 
+              style={styles.refreshButton}
+              onPress={() => {
+                setRefreshing(true);
+                loadData();
+              }}
+            >
+              <Text style={styles.refreshButtonText}>Refresh</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <FlatList
+          data={schools}
+          renderItem={renderSchool}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderMySchool}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => {
+              setRefreshing(true);
+              loadData();
+            }} />
+          }
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -290,6 +312,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   joinButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  emptyContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  refreshButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  refreshButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',

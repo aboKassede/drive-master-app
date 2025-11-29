@@ -48,6 +48,7 @@ export const studentAPI = {
 
 export const instructorAPI = {
   getProfile: () => api.get('/instructors/me'),
+  updateProfile: (data) => api.put('/instructors/me', data),
   getPendingLessons: () => api.get('/instructor/pending-lessons'),
   acceptLesson: (lessonId) => api.put(`/booking/lesson/${lessonId}/accept`),
   rejectLesson: (lessonId, reason) => api.put(`/instructor/lessons/${lessonId}/reject`, { reason }),

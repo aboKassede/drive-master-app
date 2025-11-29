@@ -14,6 +14,9 @@ import NotificationsScreen from './src/screens/NotificationsScreen';
 import SchoolsScreen from './src/screens/SchoolsScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import HelpScreen from './src/screens/HelpScreen';
 
 const Stack = createStackNavigator();
 
@@ -75,6 +78,21 @@ const AppNavigator = () => {
               name="Progress" 
               component={ProgressScreen}
               options={{ title: 'My Progress' }}
+            />
+            <Stack.Screen 
+              name="Profile" 
+              component={ProfileScreen}
+              options={{ title: 'Profile' }}
+            />
+            <Stack.Screen 
+              name="Settings" 
+              component={SettingsScreen}
+              options={{ title: 'Settings' }}
+            />
+            <Stack.Screen 
+              name="Help" 
+              component={HelpScreen}
+              options={{ title: 'Help & Support' }}
             />
           </>
         ) : (
