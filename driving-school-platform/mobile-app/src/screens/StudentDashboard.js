@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../services/api';
 
@@ -46,6 +47,8 @@ const StudentDashboard = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Failed to load upcoming lesson:', error);
+      // Set null to hide the upcoming lesson card if API fails
+      setUpcomingLesson(null);
     }
   };
 

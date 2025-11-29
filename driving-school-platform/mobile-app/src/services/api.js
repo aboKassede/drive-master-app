@@ -36,6 +36,7 @@ export const authAPI = {
 export const studentAPI = {
   getProfile: () => api.get('/students/me'),
   updateProfile: (data) => api.put('/students/me', data),
+  getUpcomingLessons: () => api.get('/lessons/upcoming'),
 };
 
 export default api;
