@@ -31,12 +31,11 @@ app.include_router(scheduling.router, prefix="/api/v1/scheduling", tags=["schedu
 app.include_router(payments.router, prefix="/api/v1/payments", tags=["payments"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(instructor_actions.router, prefix="/api/v1/instructor", tags=["instructor-actions"])
-app.include_router(schools.router, prefix="/api/v1/schools", tags=["schools"])
+app.include_router(available_schools.router, prefix="/api/v1/schools", tags=["schools"])
 app.include_router(progress.router, prefix="/api/v1/progress", tags=["progress"])
 app.include_router(ratings.router, prefix="/api/v1/ratings", tags=["ratings"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.include_router(booking.router, prefix="/api/v1/booking", tags=["booking"])
-app.include_router(available_schools.router, prefix="/api/v1/schools", tags=["schools"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(healthcheck.router, tags=["health"])
 
