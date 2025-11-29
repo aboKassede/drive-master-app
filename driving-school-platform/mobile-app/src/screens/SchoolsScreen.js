@@ -9,10 +9,32 @@ const SchoolsScreen = ({ navigation }) => {
   const [schoolStatus, setSchoolStatus] = useState('no_school');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [joiningSchool, setJoiningSchool] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     loadData();
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const userResponse = await studentAPI.getProfile();
+      if (userResponse.data) {
+        setCurrentUser(userResponse.data);
+        console.log('Current user:', userResponse.data);
+      }
+    } catch (error) {
+      console.log('Could not load user data:', error);
+      // Set default user if profile fails
+      setCurrentUser({
+        first_name: 'Student',
+        last_name: 'User', 
+        email: 'student@example.com',
+        phone: '+1234567890'
+      });
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -55,6 +77,8 @@ const SchoolsScreen = ({ navigation }) => {
   };
 
   const handleJoinSchool = async (school) => {
+    if (joiningSchool) return; // Prevent multiple requests
+    
     console.log('Join school button pressed for:', school.name);
     try {
       Alert.alert(
@@ -65,33 +89,37 @@ const SchoolsScreen = ({ navigation }) => {
           {
             text: 'Join',
             onPress: async () => {
+              setJoiningSchool(true);
               console.log('User confirmed join request');
               try {
-                console.log('Sending request with data:', {
-                  school_id: school.id,
-                  message: `I would like to join ${school.name} for driving lessons.`
-                });
+                const userName = currentUser ? 
+                  `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : 
+                  'Unknown User';
                 
-                const response = await studentAPI.requestSchoolJoin({
+                const requestData = {
                   school_id: school.id,
-                  message: `I would like to join ${school.name} for driving lessons.`
-                });
+                  message: `I would like to join ${school.name} for driving lessons.`,
+                  student_name: userName,
+                  student_email: currentUser?.email || 'unknown@email.com',
+                  student_phone: currentUser?.phone || 'No phone'
+                };
+                console.log('Sending request with data:', requestData);
+                
+                const response = await studentAPI.requestSchoolJoin(requestData);
                 
                 console.log('API Response:', response);
-                console.log('Response data:', response.data);
-                console.log('Response status:', response.status);
                 
-                if (response && response.data) {
+                if (response && response.data && response.data.message) {
                   Alert.alert('Success', 'Your request has been sent to the school!');
-                  loadData();
+                  setSchoolStatus('pending'); // Update status locally
                 } else {
-                  Alert.alert('Error', 'No response from server');
+                  Alert.alert('Error', 'Failed to send request');
                 }
               } catch (apiError) {
                 console.error('API Error:', apiError);
-                console.error('Error details:', apiError.response);
-                console.error('Error config:', apiError.config);
-                Alert.alert('Error', `Failed to send request: ${apiError.message}`);
+                Alert.alert('Error', 'Failed to send join request');
+              } finally {
+                setJoiningSchool(false);
               }
             }
           }
@@ -137,10 +165,13 @@ const SchoolsScreen = ({ navigation }) => {
       
       {schoolStatus === 'no_school' && (
         <TouchableOpacity 
-          style={styles.joinButton}
+          style={[styles.joinButton, joiningSchool && styles.joinButtonDisabled]}
           onPress={() => handleJoinSchool(item)}
+          disabled={joiningSchool}
         >
-          <Text style={styles.joinButtonText}>Request to Join</Text>
+          <Text style={styles.joinButtonText}>
+            {joiningSchool ? 'Sending...' : 'Request to Join'}
+          </Text>
         </TouchableOpacity>
       )}
     </View>
@@ -360,6 +391,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  joinButtonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   emptyContainer: {
     flex: 1,

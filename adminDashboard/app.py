@@ -247,26 +247,33 @@ def view_school_requests():
     try:
         # Get all pending school requests with student details
         requests = []
-        for request in db.school_requests.find({"status": "pending"}):
-            # Get student details
-            student = db.students.find_one({"_id": request["student_id"]})
-            # Get school details
-            school = db.schools.find_one({"_id": request["school_id"]})
-            
-            if student and school:
-                request_data = {
-                    "id": str(request["_id"]),
-                    "student_name": f"{student.get('first_name', '')} {student.get('last_name', '')}".strip(),
-                    "student_email": student.get('email', ''),
-                    "student_phone": student.get('phone', ''),
-                    "school_name": school.get('name', ''),
-                    "message": request.get('message', ''),
-                    "created_at": request.get('created_at', ''),
-                    "student_id": str(request["student_id"]),
-                    "school_id": str(request["school_id"])
-                }
-                requests.append(request_data)
+        total_requests = db.school_requests.count_documents({})
+        pending_requests = db.school_requests.count_documents({"status": "pending"})
+        print(f"Total requests in DB: {total_requests}, Pending: {pending_requests}")
         
+        for request in db.school_requests.find({"status": "pending"}):
+            print(f"Found request: {request}")
+            # Get student details (optional since we have hardcoded data)
+            student = db.students.find_one({"_id": request["student_id"]}) if request.get("student_id") else None
+            # Get school details
+            school = db.schools.find_one({"_id": request["school_id"]}) if request.get("school_id") else None
+            
+            # Use hardcoded data if student/school not found
+            request_data = {
+                "id": str(request["_id"]),
+                "student_name": request.get('student_name', 'Unknown Student'),
+                "student_email": request.get('student_email', 'unknown@email.com'),
+                "student_phone": request.get('student_phone', 'No phone'),
+                "school_name": school.get('name', 'Unknown School') if school else 'Unknown School',
+                "message": request.get('message', ''),
+                "created_at": request.get('created_at', ''),
+                "student_id": str(request.get("student_id", '')),
+                "school_id": str(request.get("school_id", ''))
+            }
+            requests.append(request_data)
+            print(f"Added request data: {request_data}")
+        
+        print(f"Returning {len(requests)} requests to template")
         return render_template('school_requests.html', requests=requests)
     except Exception as e:
         return render_template('error.html', error=f"Error loading requests: {str(e)}")

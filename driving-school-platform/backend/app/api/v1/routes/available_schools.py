@@ -49,7 +49,26 @@ async def get_my_school():
     """Get current user's school information"""
     try:
         db = get_database()
-        # For now, return no school to avoid auth issues
+        # Check for approved requests
+        approved_request = await db.school_requests.find_one({"status": "approved"})
+        if approved_request:
+            school = await db.schools.find_one({"_id": approved_request["school_id"]})
+            if school:
+                return {
+                    "school": {
+                        "id": str(school["_id"]),
+                        "name": school.get("name", ""),
+                        "address": school.get("address", ""),
+                        "phone": school.get("phone", "")
+                    },
+                    "status": "approved"
+                }
+        
+        # Check for pending requests
+        pending_request = await db.school_requests.find_one({"status": "pending"})
+        if pending_request:
+            return {"school": None, "status": "pending"}
+        
         return {"school": None, "status": "no_school"}
         
         # student = await db.students.find_one({"email": current_user["email"]})
@@ -176,9 +195,9 @@ async def create_join_request(request_data: dict):
             "school_id": ObjectId(request_data.get("school_id")),
             "message": request_data.get("message", ""),
             "status": "pending",
-            "student_name": "Mahmod",  # Hardcoded for now
-            "student_email": "mahmod@example.com",
-            "student_phone": "+1234567890",
+            "student_name": request_data.get("student_name", "Unknown Student"),
+            "student_email": request_data.get("student_email", "unknown@email.com"),
+            "student_phone": request_data.get("student_phone", "No phone"),
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }
