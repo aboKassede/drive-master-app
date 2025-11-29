@@ -1,30 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
-import api from '../services/api';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { studentAPI } from '../services/api';
 
-const SchoolsScreen = () => {
+const SchoolsScreen = ({ navigation }) => {
   const [schools, setSchools] = useState([]);
+  const [mySchool, setMySchool] = useState(null);
+  const [schoolStatus, setSchoolStatus] = useState('no_school');
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadSchools();
+    loadData();
   }, []);
 
-  const loadSchools = async () => {
+  const loadData = async () => {
     try {
-      const response = await api.get('/schools/');
-      setSchools(response.data);
+      const [schoolsResponse, mySchoolResponse] = await Promise.all([
+        studentAPI.getAvailableSchools(),
+        studentAPI.getMySchool()
+      ]);
+      
+      setSchools(schoolsResponse.data.schools || []);
+      setMySchool(mySchoolResponse.data.school);
+      setSchoolStatus(mySchoolResponse.data.status);
     } catch (error) {
       console.error('Failed to load schools:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const joinSchool = async (schoolId) => {
+  const handleJoinSchool = async (school) => {
     try {
-      await api.post(`/schools/${schoolId}/join`);
-      Alert.alert('Success', 'Join request sent! Wait for school approval.');
+      Alert.alert(
+        'Join School',
+        `Do you want to request to join ${school.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Join',
+            onPress: async () => {
+              const response = await studentAPI.requestSchoolJoin({
+                school_id: school.id,
+                message: `I would like to join ${school.name} for driving lessons.`
+              });
+              
+              if (response.data) {
+                Alert.alert('Success', 'Your request has been sent to the school!');
+                loadData();
+              }
+            }
+          }
+        ]
+      );
     } catch (error) {
       Alert.alert('Error', 'Failed to send join request');
     }
@@ -32,21 +62,70 @@ const SchoolsScreen = () => {
 
   const renderSchool = ({ item }) => (
     <View style={styles.schoolCard}>
-      <Text style={styles.schoolName}>{item.name}</Text>
-      <Text style={styles.schoolAddress}>{item.address}, {item.city}</Text>
+      <View style={styles.schoolHeader}>
+        <Text style={styles.schoolName}>{item.name}</Text>
+        <View style={styles.ratingContainer}>
+          <Text style={styles.rating}>⭐ {item.average_rating.toFixed(1)}</Text>
+        </View>
+      </View>
+      
+      <Text style={styles.schoolAddress}>{item.address}</Text>
       <Text style={styles.schoolPhone}>📞 {item.phone}</Text>
+      
       {item.description && (
         <Text style={styles.schoolDescription}>{item.description}</Text>
       )}
       
-      <TouchableOpacity
-        style={styles.joinButton}
-        onPress={() => joinSchool(item.id)}
-      >
-        <Text style={styles.joinButtonText}>Request to Join</Text>
-      </TouchableOpacity>
+      <View style={styles.servicesContainer}>
+        <Text style={styles.servicesTitle}>Services:</Text>
+        <View style={styles.servicesList}>
+          {item.services.slice(0, 3).map((service, index) => (
+            <Text key={index} style={styles.serviceTag}>{service}</Text>
+          ))}
+        </View>
+      </View>
+      
+      <View style={styles.statsContainer}>
+        <Text style={styles.stat}>👥 {item.total_students} students</Text>
+        <Text style={styles.stat}>👨‍🏫 {item.total_instructors} instructors</Text>
+      </View>
+      
+      {schoolStatus === 'no_school' && (
+        <TouchableOpacity 
+          style={styles.joinButton}
+          onPress={() => handleJoinSchool(item)}
+        >
+          <Text style={styles.joinButtonText}>Request to Join</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
+
+  const renderMySchool = () => {
+    if (!mySchool) return null;
+    
+    return (
+      <View style={styles.mySchoolContainer}>
+        <Text style={styles.sectionTitle}>My School</Text>
+        <View style={[styles.schoolCard, styles.mySchoolCard]}>
+          <View style={styles.schoolHeader}>
+            <Text style={styles.schoolName}>{mySchool.name}</Text>
+            <View style={[styles.statusBadge, 
+              schoolStatus === 'approved' ? styles.approvedBadge : 
+              schoolStatus === 'pending' ? styles.pendingBadge : styles.rejectedBadge
+            ]}>
+              <Text style={styles.statusText}>
+                {schoolStatus === 'approved' ? '✅ Approved' : 
+                 schoolStatus === 'pending' ? '⏳ Pending' : '❌ Rejected'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.schoolAddress}>{mySchool.address}</Text>
+          <Text style={styles.schoolPhone}>📞 {mySchool.phone}</Text>
+        </View>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -57,15 +136,22 @@ const SchoolsScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={schools}
         renderItem={renderSchool}
         keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={renderMySchool}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => {
+            setRefreshing(true);
+            loadData();
+          }} />
+        }
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -75,7 +161,87 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   content: {
-    padding: 24,
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  mySchoolContainer: {
+    marginBottom: 24,
+  },
+  mySchoolCard: {
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+  },
+  schoolHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  rating: {
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  approvedBadge: {
+    backgroundColor: '#D1FAE5',
+  },
+  pendingBadge: {
+    backgroundColor: '#FEF3C7',
+  },
+  rejectedBadge: {
+    backgroundColor: '#FEE2E2',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  servicesContainer: {
+    marginBottom: 12,
+  },
+  servicesTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+    marginBottom: 6,
+  },
+  servicesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  serviceTag: {
+    backgroundColor: '#EFF6FF',
+    color: '#1D4ED8',
+    fontSize: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 6,
+    marginBottom: 4,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  stat: {
+    fontSize: 14,
+    color: '#64748B',
   },
   loadingText: {
     textAlign: 'center',

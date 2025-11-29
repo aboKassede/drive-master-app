@@ -20,6 +20,13 @@ async def seed_students():
             "phone": "1234567890",
             "date_of_birth": datetime(1995, 5, 15),
             "emergency_contact": "Jane Doe - 0987654321",
+            "age": 28,
+            "gender": "male",
+            "goal_license_type": "B",
+            "learning_level": "beginner",
+            "school_status": "pending",
+            "total_lessons": 0,
+            "completed_lessons": 0,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         },
@@ -31,6 +38,13 @@ async def seed_students():
             "phone": "2345678901",
             "date_of_birth": datetime(1998, 8, 22),
             "emergency_contact": "Bob Smith - 1987654321",
+            "age": 25,
+            "gender": "female",
+            "goal_license_type": "automatic",
+            "learning_level": "test_preparation",
+            "school_status": "pending",
+            "total_lessons": 0,
+            "completed_lessons": 0,
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }

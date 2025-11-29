@@ -1,38 +1,57 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from bson import ObjectId
+from enum import Enum
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+class LicenseType(str, Enum):
+    A = "A"  # Motorcycle
+    B = "B"  # Car
+    MANUAL = "manual"
+    AUTOMATIC = "automatic"
 
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
+class LearningLevel(str, Enum):
+    BEGINNER = "beginner"
+    TEST_PREPARATION = "test_preparation"
 
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type="string")
-        return field_schema
+class Gender(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+class StudentStatus(str, Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    SUSPENDED = "suspended"
 
 class Student(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    email: str
+    email: EmailStr
     password_hash: str
     first_name: str
     last_name: str
     phone: str
     date_of_birth: datetime
-    license_number: Optional[str] = None
     emergency_contact: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
     
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    # Extended fields from plan
+    photo_url: Optional[str] = None
+    address: Optional[str] = None
+    goal_license_type: Optional[LicenseType] = None
+    age: Optional[int] = None
+    gender: Optional[Gender] = None
+    preferred_instructor_gender: Optional[Gender] = None
+    learning_level: Optional[LearningLevel] = LearningLevel.BEGINNER
+    
+    # School relationship
+    school_id: Optional[str] = None
+    school_status: StudentStatus = StudentStatus.PENDING
+    
+    # Progress tracking
+    license_number: Optional[str] = None
+    total_lessons: int = 0
+    completed_lessons: int = 0
+    
+    # Preferences
+    preferred_instructor_id: Optional[str] = None
+    
+    created_at: datetime
+    updated_at: datetime

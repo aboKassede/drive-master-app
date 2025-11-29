@@ -1,31 +1,68 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List, Dict
 from datetime import datetime
-from bson import ObjectId
-from .student import PyObjectId
+from enum import Enum
+
+class SchoolStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    SUSPENDED = "suspended"
+
+class LessonPricing(BaseModel):
+    lesson_type: str
+    price: float
+    duration_minutes: int
+
+class OperatingHours(BaseModel):
+    monday: Optional[str] = None
+    tuesday: Optional[str] = None
+    wednesday: Optional[str] = None
+    thursday: Optional[str] = None
+    friday: Optional[str] = None
+    saturday: Optional[str] = None
+    sunday: Optional[str] = None
 
 class School(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str
-    email: str
-    phone: str
     address: str
-    city: str
-    state: str
-    zip_code: str
+    phone: str
+    email: EmailStr
+    
+    # Legal and licensing
+    license_number: str
+    established_date: datetime
+    
+    # Services and pricing
+    services: List[str] = []  # manual_transmission, automatic_transmission, highway_driving, etc.
+    lesson_types: List[str] = []  # driving, theory, mock_test, simulator
+    pricing: List[LessonPricing] = []
+    
+    # Operations
+    operating_hours: OperatingHours
+    
+    # Staff and management
+    main_instructor_id: Optional[str] = None
+    instructor_ids: List[str] = []
+    admin_emails: List[str] = []
+    
+    # Student management
+    student_ids: List[str] = []
+    pending_student_requests: List[str] = []
+    
+    # Media and branding
     logo_url: Optional[str] = None
     description: Optional[str] = None
-    license_number: str
-    main_instructor_id: Optional[PyObjectId] = None
-    instructors: List[PyObjectId] = []
-    students: List[PyObjectId] = []
-    lesson_types: List[dict] = []
-    pricing: dict = {}
-    status: str = "pending"  # pending, approved, suspended
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    website: Optional[str] = None
     
-    class Config:
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+    # Business details
+    payment_details: Optional[Dict] = None
+    bank_account: Optional[str] = None
+    
+    # Status and metrics
+    status: SchoolStatus = SchoolStatus.ACTIVE
+    total_students: int = 0
+    total_instructors: int = 0
+    average_rating: float = 0.0
+    
+    created_at: datetime
+    updated_at: datetime

@@ -39,6 +39,18 @@ export const studentAPI = {
   getUpcomingLessons: () => api.get('/lessons/upcoming'),
   getProgress: () => api.get('/progress/me'),
   getInstructors: () => api.get('/instructors'),
+  getAvailableSchools: () => api.get('/schools/available'),
+  getMySchool: () => api.get('/schools/my-school'),
+  requestSchoolJoin: (data) => api.post('/booking/school/join', data),
+  bookLesson: (data) => api.post('/booking/lesson', data),
+  getMyBookings: () => api.get('/booking/my-requests'),
+};
+
+export const instructorAPI = {
+  getProfile: () => api.get('/instructors/me'),
+  getPendingLessons: () => api.get('/instructor/pending-lessons'),
+  acceptLesson: (lessonId) => api.put(`/booking/lesson/${lessonId}/accept`),
+  rejectLesson: (lessonId, reason) => api.put(`/instructor/lessons/${lessonId}/reject`, { reason }),
 };
 
 export default api;
